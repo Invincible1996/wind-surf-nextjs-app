@@ -6,9 +6,11 @@ import { Bell, Search, User, LogOut, Settings, Menu } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
+import { useMobileMenu } from "@/contexts/mobile-menu-context";
 
 export function Header() {
   const { user, logout } = useAuth();
+  const { toggle } = useMobileMenu();
   const router = useRouter();
 
   const handleLogout = () => {
@@ -20,7 +22,12 @@ export function Header() {
     <div className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="flex h-14 md:h-16 items-center px-4">
         {/* Mobile Menu Button - visible on mobile, hidden on desktop */}
-        <Button variant="ghost" size="icon" className="mr-2 md:hidden">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="mr-2 md:hidden"
+          onClick={toggle}
+        >
           <Menu className="h-5 w-5" />
         </Button>
 
