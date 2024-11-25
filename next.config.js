@@ -12,7 +12,6 @@ const nextConfig = {
   // Experimental features
   experimental: {
     // Enable new app directory
-    appDir: true,
   },
 
   // Build logging
