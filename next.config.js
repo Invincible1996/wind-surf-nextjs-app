@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Asset prefix for Vercel environment
-  assetPrefix: process.env.VERCEL ? '/_next' : '',
-
+  // Remove assetPrefix as it's causing script loading issues
+  output: 'standalone',
+  
   // Image optimization settings
   images: {
     unoptimized: true,
@@ -12,6 +12,7 @@ const nextConfig = {
   // Experimental features
   experimental: {
     // Enable new app directory
+    appDir: true,
   },
 
   // Build logging
