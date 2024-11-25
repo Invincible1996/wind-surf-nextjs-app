@@ -72,11 +72,11 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Analytics Overview</h2>
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics Overview</h2>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
           <Select defaultValue="30">
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
             <SelectContent>
@@ -85,14 +85,14 @@ export default function AnalyticsPage() {
               <SelectItem value="1">Last 24 hours</SelectItem>
             </SelectContent>
           </Select>
-          <button className="px-4 py-1 bg-primary text-white rounded-md hover:bg-primary/90">
+          <button className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 text-sm">
             Export
           </button>
         </div>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Users"
           value="24,571"
@@ -124,9 +124,9 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Monthly Overview */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Monthly Overview</h3>
-        <div className="h-[400px]">
+      <Card className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">Monthly Overview</h3>
+        <div className="h-[300px] sm:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={monthlyData}>
               <defs>
@@ -163,11 +163,11 @@ export default function AnalyticsPage() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Device Distribution */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Device Distribution</h3>
-          <div className="h-[300px]">
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Device Distribution</h3>
+          <div className="h-[250px] sm:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -193,9 +193,9 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Geographic Distribution */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Geographic Distribution</h3>
-          <div className="h-[300px]">
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Geographic Distribution</h3>
+          <div className="h-[250px] sm:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={locationData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -211,56 +211,56 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         </Card>
-
-        {/* Hourly Traffic */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">24-Hour Traffic</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={hourlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="users"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        {/* Session Duration */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Monthly Sessions</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar
-                  dataKey="sessions"
-                  fill="#8884d8"
-                  radius={[4, 4, 0, 0]}
-                >
-                  {monthlyData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={`hsl(${index * 30}, 70%, 60%)`}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
       </div>
+
+      {/* Hourly Traffic */}
+      <Card className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">24-Hour Traffic</h3>
+        <div className="h-[250px] sm:h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={hourlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="hour" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="users"
+                stroke="#8884d8"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      {/* Session Duration */}
+      <Card className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">Monthly Sessions</h3>
+        <div className="h-[250px] sm:h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar
+                dataKey="sessions"
+                fill="#8884d8"
+                radius={[4, 4, 0, 0]}
+              >
+                {monthlyData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={`hsl(${index * 30}, 70%, 60%)`}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
     </div>
   );
 }
