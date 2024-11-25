@@ -20,9 +20,9 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed top-0 left-0 z-40 h-screen w-64 bg-gray-900 text-white">
+    <aside className="fixed top-0 left-0 z-20 h-screen w-64 bg-gray-900 text-white">
       <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center px-6">
+        <div className="flex h-14 md:h-16 items-center px-6">
           <h1 className="text-2xl font-bold">WindSurf</h1>
         </div>
         

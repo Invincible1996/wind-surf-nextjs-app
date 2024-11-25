@@ -17,7 +17,7 @@ export function Header() {
   };
 
   return (
-    <div className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <div className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="flex h-14 md:h-16 items-center px-4">
         {/* Mobile Menu Button - visible on mobile, hidden on desktop */}
         <Button variant="ghost" size="icon" className="mr-2 md:hidden">
@@ -58,7 +58,7 @@ export function Header() {
               </div>
             </Button>
             
-            <div className="absolute right-0 mt-1 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-100 ease-in-out">
+            <div className="absolute right-0 mt-1 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-100 ease-in-out z-50">
               <div className="bg-white rounded-md shadow-lg border py-1">
                 <Link href="/dashboard/profile" className="flex items-center px-4 py-2 text-sm hover:bg-gray-100">
                   <User className="mr-2 h-4 w-4" />
