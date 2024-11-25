@@ -3,6 +3,13 @@
 import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AreaChart,
   Area,
   XAxis,
@@ -68,11 +75,16 @@ export default function AnalyticsPage() {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold tracking-tight">Analytics Overview</h2>
         <div className="flex items-center space-x-4">
-          <select className="px-3 py-1 border rounded-md bg-white">
-            <option>Last 30 days</option>
-            <option>Last 7 days</option>
-            <option>Last 24 hours</option>
-          </select>
+          <Select defaultValue="30">
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="1">Last 24 hours</SelectItem>
+            </SelectContent>
+          </Select>
           <button className="px-4 py-1 bg-primary text-white rounded-md hover:bg-primary/90">
             Export
           </button>
