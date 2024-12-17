@@ -8,6 +8,7 @@ import {
   Users,
   BarChart3,
   X,
+  Palette,
 } from 'lucide-react';
 import { useMobileMenu } from '@/contexts/mobile-menu-context';
 import { Button } from '../ui/button';
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 const menuItems = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { title: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { title: 'Canvas', href: '/dashboard/canvas', icon: Palette },
   { title: 'Users', href: '/dashboard/users', icon: Users },
   { title: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
