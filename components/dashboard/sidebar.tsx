@@ -20,6 +20,7 @@ const menuItems = [
   { title: 'Canvas', href: '/dashboard/canvas', icon: Palette },
   { title: 'Users', href: '/dashboard/users', icon: Users },
   { title: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { title: 'Color Converter', href: '/dashboard/color-converter', icon: Palette }, // New menu item
 ];
 
 export function Sidebar() {
