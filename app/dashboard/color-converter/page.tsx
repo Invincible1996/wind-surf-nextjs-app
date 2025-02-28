@@ -1,11 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CopyIcon, RefreshCcw, Save as SaveIcon, X } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  CopyIcon,
+  RefreshCcw,
+  Save as SaveIcon,
+  X,
+  HelpCircle,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 interface Position {
   x: number;
@@ -20,7 +32,7 @@ interface SavedColor {
 }
 
 export default function ColorConverterPage() {
-  const [hexColor, setHexColor] = useState('#1e88e5');
+  const [hexColor, setHexColor] = useState("#1e88e5");
   const [rgbColor, setRgbColor] = useState({ r: 30, g: 136, b: 229, a: 1 });
   const [hslColor, setHslColor] = useState({ h: 210, s: 80, l: 50 });
   const [cmykColor, setCmykColor] = useState({ c: 87, m: 41, y: 0, k: 10 });
@@ -34,10 +46,11 @@ export default function ColorConverterPage() {
   const [savedColors, setSavedColors] = useState<SavedColor[]>([]);
   const [isAlphaDragging, setIsAlphaDragging] = useState(false);
   const alphaRef = useRef<HTMLDivElement>(null);
+  const colorPickerRef = useRef<HTMLInputElement>(null);
 
   // 在组件加载时从 localStorage 读取保存的颜色
   useEffect(() => {
-    const saved = localStorage.getItem('savedColors');
+    const saved = localStorage.getItem("savedColors");
     if (saved) {
       setSavedColors(JSON.parse(saved));
     }
@@ -60,15 +73,15 @@ export default function ColorConverterPage() {
     if (!isDuplicate) {
       const updatedColors = [newColor, ...savedColors].slice(0, 20); // 最多保存20个颜色
       setSavedColors(updatedColors);
-      localStorage.setItem('savedColors', JSON.stringify(updatedColors));
+      localStorage.setItem("savedColors", JSON.stringify(updatedColors));
     }
   };
 
   // 从历史记录中删除颜色
   const removeColor = (id: string) => {
-    const updatedColors = savedColors.filter(color => color.id !== id);
+    const updatedColors = savedColors.filter((color) => color.id !== id);
     setSavedColors(updatedColors);
-    localStorage.setItem('savedColors', JSON.stringify(updatedColors));
+    localStorage.setItem("savedColors", JSON.stringify(updatedColors));
   };
 
   // 从历史记录中加载颜色
@@ -77,18 +90,20 @@ export default function ColorConverterPage() {
     setRgbColor(color.rgb);
     setHslColor(rgbToHsl(color.rgb.r, color.rgb.g, color.rgb.b));
     setCmykColor(rgbToCmyk(color.rgb.r, color.rgb.g, color.rgb.b));
-    
+
     // 更新颜色选择器位置
     const hsv = rgbToHsv(color.rgb.r, color.rgb.g, color.rgb.b);
     setHue(hsv.h);
     setPosition({
       x: hsv.s / 100,
-      y: 1 - (hsv.v / 100),
+      y: 1 - hsv.v / 100,
     });
   };
 
   // 修改 hexToRgb 函数
-  const hexToRgb = (hex: string): { r: number; g: number; b: number; a: number } | null => {
+  const hexToRgb = (
+    hex: string
+  ): { r: number; g: number; b: number; a: number } | null => {
     // 处理3位十六进制 (#RGB)
     const result3 = /^#?([a-f\d])([a-f\d])([a-f\d])$/i.exec(hex);
     if (result3) {
@@ -107,7 +122,8 @@ export default function ColorConverterPage() {
         r: parseInt(result4[1] + result4[1], 16),
         g: parseInt(result4[2] + result4[2], 16),
         b: parseInt(result4[3] + result4[3], 16),
-        a: Math.round((parseInt(result4[4] + result4[4], 16) / 255) * 100) / 100,
+        a:
+          Math.round((parseInt(result4[4] + result4[4], 16) / 255) * 100) / 100,
       };
     }
 
@@ -121,9 +137,10 @@ export default function ColorConverterPage() {
         a: 1,
       };
     }
-    
+
     // 处理8位十六进制 (#RRGGBBAA)
-    const result8 = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    const result8 =
+      /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (result8) {
       return {
         r: parseInt(result8[1], 16),
@@ -132,18 +149,29 @@ export default function ColorConverterPage() {
         a: Math.round((parseInt(result8[4], 16) / 255) * 100) / 100,
       };
     }
-    
+
     return null;
   };
 
   // 转换RGB到十六进制
   const rgbToHex = (r: number, g: number, b: number, a?: number): string => {
-    const alpha = a !== undefined ? Math.round(a * 255).toString(16).padStart(2, '0') : '';
-    return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1) + alpha;
+    const alpha =
+      a !== undefined
+        ? Math.round(a * 255)
+            .toString(16)
+            .padStart(2, "0")
+        : "";
+    return (
+      "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1) + alpha
+    );
   };
 
   // 转换RGB到HSL
-  const rgbToHsl = (r: number, g: number, b: number): { h: number; s: number; l: number; a: number } => {
+  const rgbToHsl = (
+    r: number,
+    g: number,
+    b: number
+  ): { h: number; s: number; l: number; a: number } => {
     r /= 255;
     g /= 255;
     b /= 255;
@@ -181,7 +209,11 @@ export default function ColorConverterPage() {
   };
 
   // 转换HSL到RGB
-  const hslToRgb = (h: number, s: number, l: number): { r: number; g: number; b: number } => {
+  const hslToRgb = (
+    h: number,
+    s: number,
+    l: number
+  ): { r: number; g: number; b: number } => {
     h /= 360;
     s /= 100;
     l /= 100;
@@ -215,7 +247,11 @@ export default function ColorConverterPage() {
   };
 
   // 转换RGB到CMYK
-  const rgbToCmyk = (r: number, g: number, b: number): { c: number; m: number; y: number; k: number } => {
+  const rgbToCmyk = (
+    r: number,
+    g: number,
+    b: number
+  ): { c: number; m: number; y: number; k: number } => {
     r /= 255;
     g /= 255;
     b /= 255;
@@ -234,7 +270,12 @@ export default function ColorConverterPage() {
   };
 
   // 转换CMYK到RGB
-  const cmykToRgb = (c: number, m: number, y: number, k: number): { r: number; g: number; b: number } => {
+  const cmykToRgb = (
+    c: number,
+    m: number,
+    y: number,
+    k: number
+  ): { r: number; g: number; b: number } => {
     c /= 100;
     m /= 100;
     y /= 100;
@@ -252,7 +293,11 @@ export default function ColorConverterPage() {
   };
 
   // 添加 RGB 到 HSV 的转换函数
-  const rgbToHsv = (r: number, g: number, b: number): { h: number; s: number; v: number } => {
+  const rgbToHsv = (
+    r: number,
+    g: number,
+    b: number
+  ): { h: number; s: number; v: number } => {
     r /= 255;
     g /= 255;
     b /= 255;
@@ -288,43 +333,53 @@ export default function ColorConverterPage() {
 
   // 修改 handleHexChange 函数
   const handleHexChange = (value: string) => {
-    if (value.startsWith('#') && value.length <= 9) {
+    if (value.startsWith("#") && value.length <= 9) {
       setHexColor(value);
-      
+
       // 检查是否是有效的十六进制颜色值
-      if (value.length === 4 || value.length === 5 || value.length === 7 || value.length === 9) {
+      if (
+        value.length === 4 ||
+        value.length === 5 ||
+        value.length === 7 ||
+        value.length === 9
+      ) {
         const rgb = hexToRgb(value);
         if (rgb) {
           setRgbColor(rgb);
           setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
           setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
-          
+
           // 更新颜色选择器位置
           const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
           setHue(hsv.h);
           setPosition({
             x: hsv.s / 100,
-            y: 1 - (hsv.v / 100),
+            y: 1 - hsv.v / 100,
           });
         }
       }
-    } else if (!value.startsWith('#') && value.length <= 8) {
-      setHexColor('#' + value);
-      
+    } else if (!value.startsWith("#") && value.length <= 8) {
+      setHexColor("#" + value);
+
       // 检查是否是有效的十六进制颜色值
-      if (value.length === 3 || value.length === 4 || value.length === 6 || value.length === 8) {
-        const rgb = hexToRgb('#' + value);
+      if (
+        value.length === 3 ||
+        value.length === 4 ||
+        value.length === 6 ||
+        value.length === 8
+      ) {
+        const rgb = hexToRgb("#" + value);
         if (rgb) {
           setRgbColor(rgb);
           setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
           setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
-          
+
           // 更新颜色选择器位置
           const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
           setHue(hsv.h);
           setPosition({
             x: hsv.s / 100,
-            y: 1 - (hsv.v / 100),
+            y: 1 - hsv.v / 100,
           });
         }
       }
@@ -332,20 +387,20 @@ export default function ColorConverterPage() {
   };
 
   // 处理RGB输入变化
-  const handleRgbChange = (color: 'r' | 'g' | 'b' | 'a', value: number) => {
-    const maxValue = color === 'a' ? 1 : 255;
+  const handleRgbChange = (color: "r" | "g" | "b" | "a", value: number) => {
+    const maxValue = color === "a" ? 1 : 255;
     let newValue = Math.max(0, Math.min(maxValue, value));
-    if (color === 'a') {
+    if (color === "a") {
       newValue = Math.round(newValue * 100) / 100; // 保留两位小数
     }
     const newRgb = { ...rgbColor, [color]: newValue };
     setRgbColor(newRgb);
-    
+
     // 更新十六进制值，包含透明度
     setHexColor(rgbToHex(newRgb.r, newRgb.g, newRgb.b, newRgb.a));
-    
+
     // 只在更改 RGB 值时更新其他颜色格式和选择器位置
-    if (color !== 'a') {
+    if (color !== "a") {
       setHslColor(rgbToHsl(newRgb.r, newRgb.g, newRgb.b));
       setCmykColor(rgbToCmyk(newRgb.r, newRgb.g, newRgb.b));
 
@@ -354,18 +409,18 @@ export default function ColorConverterPage() {
       setHue(hsv.h);
       setPosition({
         x: hsv.s / 100,
-        y: 1 - (hsv.v / 100),
+        y: 1 - hsv.v / 100,
       });
     }
   };
 
   // 处理HSL输入变化
-  const handleHslChange = (color: 'h' | 's' | 'l', value: number) => {
+  const handleHslChange = (color: "h" | "s" | "l", value: number) => {
     const maxValues = { h: 360, s: 100, l: 100 };
     const newValue = Math.max(0, Math.min(maxValues[color], value));
     const newHsl = { ...hslColor, [color]: newValue };
     setHslColor(newHsl);
-    
+
     const rgb = hslToRgb(newHsl.h, newHsl.s, newHsl.l);
     setRgbColor({ ...rgb, a: rgbColor.a });
     setHexColor(rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a));
@@ -376,16 +431,16 @@ export default function ColorConverterPage() {
     setHue(hsv.h);
     setPosition({
       x: hsv.s / 100,
-      y: 1 - (hsv.v / 100),
+      y: 1 - hsv.v / 100,
     });
   };
 
   // 处理CMYK输入变化
-  const handleCmykChange = (color: 'c' | 'm' | 'y' | 'k', value: number) => {
+  const handleCmykChange = (color: "c" | "m" | "y" | "k", value: number) => {
     const newValue = Math.max(0, Math.min(100, value));
     const newCmyk = { ...cmykColor, [color]: newValue };
     setCmykColor(newCmyk);
-    
+
     const rgb = cmykToRgb(newCmyk.c, newCmyk.m, newCmyk.y, newCmyk.k);
     setRgbColor({ ...rgb, a: rgbColor.a });
     setHexColor(rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a));
@@ -396,7 +451,7 @@ export default function ColorConverterPage() {
     setHue(hsv.h);
     setPosition({
       x: hsv.s / 100,
-      y: 1 - (hsv.v / 100),
+      y: 1 - hsv.v / 100,
     });
   };
 
@@ -409,14 +464,22 @@ export default function ColorConverterPage() {
 
   // 重置颜色
   const resetColor = () => {
-    setHexColor('#1e88e5');
+    setHexColor("#1e88e5");
     setRgbColor({ r: 30, g: 136, b: 229, a: 1 });
     setHslColor({ h: 210, s: 80, l: 50 });
     setCmykColor({ c: 87, m: 41, y: 0, k: 10 });
   };
 
   // 创建颜色值显示组件
-  const ColorValueDisplay = ({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) => (
+  const ColorValueDisplay = ({
+    label,
+    value,
+    onCopy,
+  }: {
+    label: string;
+    value: string;
+    onCopy: () => void;
+  }) => (
     <div>
       <Label>{label}</Label>
       <div className="flex items-center mt-1.5">
@@ -458,19 +521,25 @@ export default function ColorConverterPage() {
       if (!isDragging || !pickerRef.current) return;
 
       const bounds = pickerRef.current.getBoundingClientRect();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-      const x = Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width));
-      const y = Math.max(0, Math.min(1, (clientY - bounds.top) / bounds.height));
+      const x = Math.max(
+        0,
+        Math.min(1, (clientX - bounds.left) / bounds.width)
+      );
+      const y = Math.max(
+        0,
+        Math.min(1, (clientY - bounds.top) / bounds.height)
+      );
 
       setPosition({ x, y });
-      
+
       // 将 HSV 转换为 RGB
       const s = x * 100;
       const v = (1 - y) * 100;
       const h = hue;
-      
+
       // HSV to RGB 转换
       const rgb = hsvToRgb(h, s, v);
       setRgbColor({ ...rgb, a: rgbColor.a });
@@ -487,12 +556,15 @@ export default function ColorConverterPage() {
       if (!isHueDragging || !hueRef.current) return;
 
       const bounds = hueRef.current.getBoundingClientRect();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const x = Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width));
-      
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const x = Math.max(
+        0,
+        Math.min(1, (clientX - bounds.left) / bounds.width)
+      );
+
       const newHue = Math.round(x * 360);
       setHue(newHue);
-      
+
       // 更新颜色
       const s = position.x * 100;
       const v = (1 - position.y) * 100;
@@ -506,26 +578,44 @@ export default function ColorConverterPage() {
   );
 
   // 添加 HSV 到 RGB 的转换函数
-  const hsvToRgb = (h: number, s: number, v: number): { r: number; g: number; b: number } => {
+  const hsvToRgb = (
+    h: number,
+    s: number,
+    v: number
+  ): { r: number; g: number; b: number } => {
     s = s / 100;
     v = v / 100;
     const c = v * s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
     const m = v - c;
-    let r = 0, g = 0, b = 0;
-    
+    let r = 0,
+      g = 0,
+      b = 0;
+
     if (h >= 0 && h < 60) {
-      r = c; g = x; b = 0;
+      r = c;
+      g = x;
+      b = 0;
     } else if (h >= 60 && h < 120) {
-      r = x; g = c; b = 0;
+      r = x;
+      g = c;
+      b = 0;
     } else if (h >= 120 && h < 180) {
-      r = 0; g = c; b = x;
+      r = 0;
+      g = c;
+      b = x;
     } else if (h >= 180 && h < 240) {
-      r = 0; g = x; b = c;
+      r = 0;
+      g = x;
+      b = c;
     } else if (h >= 240 && h < 300) {
-      r = x; g = 0; b = c;
+      r = x;
+      g = 0;
+      b = c;
     } else if (h >= 300 && h < 360) {
-      r = c; g = 0; b = x;
+      r = c;
+      g = 0;
+      b = x;
     }
 
     return {
@@ -538,12 +628,12 @@ export default function ColorConverterPage() {
   // 添加透明度滑块的触摸事件处理
   const handleAlphaMove = (e: MouseEvent | TouchEvent) => {
     if (!isAlphaDragging || !alphaRef.current) return;
-    
+
     const bounds = alphaRef.current.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const x = Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width));
-    
-    handleRgbChange('a', x);
+
+    handleRgbChange("a", x);
   };
 
   // 添加事件监听器
@@ -560,26 +650,72 @@ export default function ColorConverterPage() {
       handleAlphaMove(e);
     };
 
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchend', handleMouseUp);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("touchend", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleMouseMove);
 
     return () => {
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchend', handleMouseUp);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchend", handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleMouseMove);
     };
   }, [handlePickerMove, handleHueMove, handleAlphaMove]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">颜色转换器</h2>
-        <p className="text-muted-foreground">
-          在不同颜色格式之间转换：HEX、RGBA、HSL和CMYK
-        </p>
+      <div className="flex flex-col space-y-2">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">颜色转换器</h2>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex-shrink-0">
+                <HelpCircle className="h-4 w-4 mr-2" />
+                颜色格式说明
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[340px] p-4">
+              <DropdownMenuLabel className="text-sm font-semibold mb-2">
+                颜色格式说明
+              </DropdownMenuLabel>
+              <div className="space-y-3">
+                <div className="p-2 rounded-md bg-muted/30">
+                  <h4 className="font-medium text-xs mb-1">HEX (十六进制)</h4>
+                  <p className="text-xs text-muted-foreground">
+                    十六进制颜色支持3位(#RGB)、4位(#RGBA)、6位(#RRGGBB)和8位(#RRGGBBAA)格式。
+                  </p>
+                </div>
+                <div className="p-2 rounded-md bg-muted/30">
+                  <h4 className="font-medium text-xs mb-1">RGBA</h4>
+                  <p className="text-xs text-muted-foreground">
+                    RGBA颜色由四个值组成：红色(R)、绿色(G)和蓝色(B)的值范围是0到255，透明度(A)的值范围是0到1。
+                  </p>
+                </div>
+                <div className="p-2 rounded-md bg-muted/30">
+                  <h4 className="font-medium text-xs mb-1">HSL/HSLA</h4>
+                  <p className="text-xs text-muted-foreground">
+                    HSL/HSLA表示色调(Hue)、饱和度(Saturation)、亮度(Lightness)和透明度(Alpha)。
+                  </p>
+                </div>
+                <div className="p-2 rounded-md bg-muted/30">
+                  <h4 className="font-medium text-xs mb-1">CMYK</h4>
+                  <p className="text-xs text-muted-foreground">
+                    CMYK颜色模型用于印刷，由青色(Cyan)、品红色(Magenta)、黄色(Yellow)和黑色(Key)四种油墨的百分比组成。
+                  </p>
+                </div>
+                <div className="p-2 rounded-md bg-muted/30">
+                  <h4 className="font-medium text-xs mb-1">HSV/HSVA</h4>
+                  <p className="text-xs text-muted-foreground">
+                    HSV/HSVA表示色调(Hue)、饱和度(Saturation)、明度(Value)和透明度(Alpha)。
+                  </p>
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <Card className="p-6">
@@ -588,10 +724,13 @@ export default function ColorConverterPage() {
           <div className="lg:col-span-1">
             <div className="space-y-4">
               {/* 颜色选择器 */}
-              <div className="relative w-full aspect-square rounded-lg shadow-md" ref={pickerRef}
+              <div
+                className="relative w-full aspect-square rounded-lg shadow-md"
+                ref={pickerRef}
                 style={{
                   backgroundColor: getPickerBackground(),
-                  backgroundImage: 'linear-gradient(to right, #fff, transparent), linear-gradient(to top, #000, transparent)',
+                  backgroundImage:
+                    "linear-gradient(to right, #fff, transparent), linear-gradient(to top, #000, transparent)",
                 }}
                 onMouseDown={handlePickerMouseDown}
                 onTouchStart={handlePickerMouseDown}
@@ -612,7 +751,8 @@ export default function ColorConverterPage() {
                 className="relative h-4 rounded-md shadow-md"
                 ref={hueRef}
                 style={{
-                  background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
+                  background:
+                    "linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)",
                 }}
                 onMouseDown={handleHueMouseDown}
                 onTouchStart={handleHueMouseDown}
@@ -638,20 +778,29 @@ export default function ColorConverterPage() {
                     linear-gradient(45deg, transparent 75%, #ccc 75%),
                     linear-gradient(-45deg, transparent 75%, #ccc 75%)
                   `,
-                  backgroundSize: '8px 8px',
-                  backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+                  backgroundSize: "8px 8px",
+                  backgroundPosition: "0 0, 0 4px, 4px -4px, -4px 0px",
                 }}
                 onMouseDown={(e) => {
                   setIsAlphaDragging(true);
                   const bounds = e.currentTarget.getBoundingClientRect();
-                  const x = Math.max(0, Math.min(1, (e.clientX - bounds.left) / bounds.width));
-                  handleRgbChange('a', x);
+                  const x = Math.max(
+                    0,
+                    Math.min(1, (e.clientX - bounds.left) / bounds.width)
+                  );
+                  handleRgbChange("a", x);
                 }}
                 onTouchStart={(e) => {
                   setIsAlphaDragging(true);
                   const bounds = e.currentTarget.getBoundingClientRect();
-                  const x = Math.max(0, Math.min(1, (e.touches[0].clientX - bounds.left) / bounds.width));
-                  handleRgbChange('a', x);
+                  const x = Math.max(
+                    0,
+                    Math.min(
+                      1,
+                      (e.touches[0].clientX - bounds.left) / bounds.width
+                    )
+                  );
+                  handleRgbChange("a", x);
                 }}
               >
                 {/* 透明度滑块指示器 */}
@@ -679,10 +828,7 @@ export default function ColorConverterPage() {
               <div className="border-t pt-2">
                 <div className="flex flex-wrap gap-1">
                   {savedColors.slice(0, 8).map((color) => (
-                    <div
-                      key={color.id}
-                      className="relative group"
-                    >
+                    <div key={color.id} className="relative group">
                       <div
                         className="w-6 h-6 rounded-sm cursor-pointer border border-border/50"
                         style={{ backgroundColor: color.hex }}
@@ -709,11 +855,42 @@ export default function ColorConverterPage() {
 
           {/* 颜色值展示 - 右侧 */}
           <div className="lg:col-span-2">
-            <div className="space-y-6">
-              {/* HEX 输入和显示 */}
+            <div className="space-y-4">
+              {/* 颜色预览和HEX输入 */}
               <div>
-                <Label htmlFor="hex">十六进制颜色值 (HEX)</Label>
-                <div className="flex mt-1.5">
+                <div className="flex items-center mb-2">
+                  {/* 隐藏的颜色选择器 */}
+                  <input
+                    type="color"
+                    ref={colorPickerRef}
+                    value={hexColor}
+                    onChange={(e) => handleHexChange(e.target.value)}
+                    className="sr-only"
+                  />
+
+                  {/* 可点击的颜色预览块 */}
+                  <div
+                    className="w-8 h-8 rounded-md border border-border/50 shadow-sm mr-2 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                    style={{
+                      backgroundColor: hexColor,
+                      backgroundImage:
+                        rgbColor.a < 1
+                          ? `
+                        linear-gradient(45deg, #ccc 25%, transparent 25%),
+                        linear-gradient(-45deg, #ccc 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #ccc 75%),
+                        linear-gradient(-45deg, transparent 75%, #ccc 75%)
+                      `
+                          : "none",
+                      backgroundSize: "4px 4px",
+                      backgroundPosition: "0 0, 0 2px, 2px -2px, -2px 0px",
+                    }}
+                    onClick={() => colorPickerRef.current?.click()}
+                    title="点击打开颜色选择器"
+                  />
+                  <Label htmlFor="hex">十六进制颜色值 (HEX)</Label>
+                </div>
+                <div className="flex mt-1">
                   <Input
                     id="hex"
                     value={hexColor}
@@ -724,293 +901,387 @@ export default function ColorConverterPage() {
                   <Button
                     className="ml-2 flex-shrink-0"
                     variant="outline"
-                    onClick={() => copyToClipboard(hexColor.toUpperCase(), 'HEX')}
+                    onClick={() =>
+                      copyToClipboard(hexColor.toUpperCase(), "HEX")
+                    }
                   >
                     <CopyIcon className="h-4 w-4" />
-                    {copied === 'HEX' && <span className="ml-1 text-xs">已复制!</span>}
+                    {copied === "HEX" && (
+                      <span className="ml-1 text-xs">已复制!</span>
+                    )}
                   </Button>
                 </div>
               </div>
 
-              {/* 所有颜色值显示 */}
-              <div className="grid grid-cols-1 gap-4">
-                {/* RGB 值显示 */}
-                <div className="space-y-2">
-                  <h3 className="font-medium">RGBA</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="r-value">R (红)</Label>
-                      <Input
-                        id="r-value"
-                        type="number"
-                        min="0"
-                        max="255"
-                        value={rgbColor.r}
-                        onChange={(e) => handleRgbChange('r', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
+              {/* 颜色值展示区域 - 使用两列布局 */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* 左列 */}
+                <div className="space-y-4">
+                  {/* RGB 值显示 */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium">RGBA</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="r-value">R (红)</Label>
+                        <Input
+                          id="r-value"
+                          type="number"
+                          min="0"
+                          max="255"
+                          value={rgbColor.r}
+                          onChange={(e) =>
+                            handleRgbChange("r", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="g-value">G (绿)</Label>
+                        <Input
+                          id="g-value"
+                          type="number"
+                          min="0"
+                          max="255"
+                          value={rgbColor.g}
+                          onChange={(e) =>
+                            handleRgbChange("g", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="b-value">B (蓝)</Label>
+                        <Input
+                          id="b-value"
+                          type="number"
+                          min="0"
+                          max="255"
+                          value={rgbColor.b}
+                          onChange={(e) =>
+                            handleRgbChange("b", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="a-value">A (透明度)</Label>
+                        <Input
+                          id="a-value"
+                          type="number"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={rgbColor.a}
+                          onChange={(e) =>
+                            handleRgbChange(
+                              "a",
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="g-value">G (绿)</Label>
-                      <Input
-                        id="g-value"
-                        type="number"
-                        min="0"
-                        max="255"
-                        value={rgbColor.g}
-                        onChange={(e) => handleRgbChange('g', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="b-value">B (蓝)</Label>
-                      <Input
-                        id="b-value"
-                        type="number"
-                        min="0"
-                        max="255"
-                        value={rgbColor.b}
-                        onChange={(e) => handleRgbChange('b', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="a-value">A (透明度)</Label>
-                      <Input
-                        id="a-value"
-                        type="number"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={rgbColor.a}
-                        onChange={(e) => handleRgbChange('a', parseFloat(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
+                    <ColorValueDisplay
+                      label="RGBA"
+                      value={`rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${rgbColor.a})`}
+                      onCopy={() =>
+                        copyToClipboard(
+                          `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${rgbColor.a})`,
+                          "RGBA"
+                        )
+                      }
+                    />
                   </div>
-                  <ColorValueDisplay 
-                    label="RGBA"
-                    value={`rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${rgbColor.a})`}
-                    onCopy={() => copyToClipboard(`rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, ${rgbColor.a})`, 'RGBA')}
-                  />
-                </div>
-                
-                {/* HSL 值显示 */}
-                <div className="space-y-2 pt-4 border-t">
-                  <h3 className="font-medium">HSL</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="h-value">H (色调)</Label>
-                      <Input
-                        id="h-value"
-                        type="number"
-                        min="0"
-                        max="360"
-                        value={hslColor.h}
-                        onChange={(e) => handleHslChange('h', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
+
+                  {/* HSL 值显示 */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium">HSL</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <Label htmlFor="h-value">H (色调)</Label>
+                        <Input
+                          id="h-value"
+                          type="number"
+                          min="0"
+                          max="360"
+                          value={hslColor.h}
+                          onChange={(e) =>
+                            handleHslChange("h", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="s-value">S (饱和度)</Label>
+                        <Input
+                          id="s-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={hslColor.s}
+                          onChange={(e) =>
+                            handleHslChange("s", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="l-value">L (亮度)</Label>
+                        <Input
+                          id="l-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={hslColor.l}
+                          onChange={(e) =>
+                            handleHslChange("l", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="s-value">S (饱和度)</Label>
-                      <Input
-                        id="s-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={hslColor.s}
-                        onChange={(e) => handleHslChange('s', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="l-value">L (亮度)</Label>
-                      <Input
-                        id="l-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={hslColor.l}
-                        onChange={(e) => handleHslChange('l', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
+                    <ColorValueDisplay
+                      label="HSL"
+                      value={`hsl(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%)`}
+                      onCopy={() =>
+                        copyToClipboard(
+                          `hsl(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%)`,
+                          "HSL"
+                        )
+                      }
+                    />
                   </div>
-                  <ColorValueDisplay 
-                    label="HSL"
-                    value={`hsl(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%)`}
-                    onCopy={() => copyToClipboard(`hsl(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%)`, 'HSL')}
-                  />
+
+                  {/* CMYK 值显示 */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium">CMYK</h3>
+                    <div className="flex flex-wrap gap-2">
+                      <div className="w-[80px]">
+                        <Label htmlFor="c-value">C (青)</Label>
+                        <Input
+                          id="c-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={cmykColor.c}
+                          onChange={(e) =>
+                            handleCmykChange("c", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div className="w-[80px]">
+                        <Label htmlFor="m-value">M (品红)</Label>
+                        <Input
+                          id="m-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={cmykColor.m}
+                          onChange={(e) =>
+                            handleCmykChange("m", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div className="w-[80px]">
+                        <Label htmlFor="y-value">Y (黄)</Label>
+                        <Input
+                          id="y-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={cmykColor.y}
+                          onChange={(e) =>
+                            handleCmykChange("y", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div className="w-[80px]">
+                        <Label htmlFor="k-value">K (黑)</Label>
+                        <Input
+                          id="k-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={cmykColor.k}
+                          onChange={(e) =>
+                            handleCmykChange("k", parseInt(e.target.value) || 0)
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                    </div>
+                    <ColorValueDisplay
+                      label="CMYK"
+                      value={`cmyk(${cmykColor.c}%, ${cmykColor.m}%, ${cmykColor.y}%, ${cmykColor.k}%)`}
+                      onCopy={() =>
+                        copyToClipboard(
+                          `cmyk(${cmykColor.c}%, ${cmykColor.m}%, ${cmykColor.y}%, ${cmykColor.k}%)`,
+                          "CMYK"
+                        )
+                      }
+                    />
+                  </div>
                 </div>
 
-                {/* HSLA 值显示 */}
-                <div className="space-y-2 pt-4 border-t">
-                  <h3 className="font-medium">HSLA</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="hsl-a-value">A (透明度)</Label>
-                      <Input
-                        id="hsl-a-value"
-                        type="number"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={rgbColor.a}
-                        onChange={(e) => handleRgbChange('a', parseFloat(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
+                {/* 右列 */}
+                <div className="space-y-4">
+                  {/* HSLA 值显示 */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium">HSLA</h3>
+                    <div className="grid grid-cols-1 gap-2">
+                      <div>
+                        <Label htmlFor="hsl-a-value">A (透明度)</Label>
+                        <Input
+                          id="hsl-a-value"
+                          type="number"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value={rgbColor.a}
+                          onChange={(e) =>
+                            handleRgbChange(
+                              "a",
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
                     </div>
+                    <ColorValueDisplay
+                      label="HSLA"
+                      value={`hsla(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%, ${rgbColor.a})`}
+                      onCopy={() =>
+                        copyToClipboard(
+                          `hsla(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%, ${rgbColor.a})`,
+                          "HSLA"
+                        )
+                      }
+                    />
                   </div>
-                  <ColorValueDisplay 
-                    label="HSLA"
-                    value={`hsla(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%, ${rgbColor.a})`}
-                    onCopy={() => copyToClipboard(`hsla(${hslColor.h}, ${hslColor.s}%, ${hslColor.l}%, ${rgbColor.a})`, 'HSLA')}
-                  />
-                </div>
 
-                {/* CMYK 值显示 */}
-                <div className="space-y-2 pt-4 border-t">
-                  <h3 className="font-medium">CMYK</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div>
-                      <Label htmlFor="c-value">C (青)</Label>
-                      <Input
-                        id="c-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={cmykColor.c}
-                        onChange={(e) => handleCmykChange('c', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
+                  {/* HSV/HSVA 值显示 */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium">HSVA</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="hsv-h-value">H (色相)</Label>
+                        <Input
+                          id="hsv-h-value"
+                          type="number"
+                          min="0"
+                          max="360"
+                          value={hue}
+                          onChange={(e) => {
+                            const newHue = parseInt(e.target.value) || 0;
+                            setHue(newHue);
+                            const rgb = hsvToRgb(
+                              newHue,
+                              position.x * 100,
+                              (1 - position.y) * 100
+                            );
+                            setRgbColor({ ...rgb, a: rgbColor.a });
+                            setHexColor(
+                              rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a)
+                            );
+                            setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
+                            setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
+                          }}
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="hsv-s-value">S (饱和度)</Label>
+                        <Input
+                          id="hsv-s-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={Math.round(position.x * 100)}
+                          onChange={(e) => {
+                            const s = parseInt(e.target.value) || 0;
+                            setPosition({ ...position, x: s / 100 });
+                            const rgb = hsvToRgb(
+                              hue,
+                              s,
+                              (1 - position.y) * 100
+                            );
+                            setRgbColor({ ...rgb, a: rgbColor.a });
+                            setHexColor(
+                              rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a)
+                            );
+                            setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
+                            setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
+                          }}
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="hsv-v-value">V (明度)</Label>
+                        <Input
+                          id="hsv-v-value"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={Math.round((1 - position.y) * 100)}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value) || 0;
+                            setPosition({ ...position, y: 1 - v / 100 });
+                            const rgb = hsvToRgb(hue, position.x * 100, v);
+                            setRgbColor({ ...rgb, a: rgbColor.a });
+                            setHexColor(
+                              rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a)
+                            );
+                            setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
+                            setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
+                          }}
+                          className="font-mono mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="hsv-a-value">A (透明度)</Label>
+                        <Input
+                          id="hsv-a-value"
+                          type="number"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value={rgbColor.a}
+                          onChange={(e) =>
+                            handleRgbChange(
+                              "a",
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
+                          className="font-mono mt-1"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="m-value">M (品红)</Label>
-                      <Input
-                        id="m-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={cmykColor.m}
-                        onChange={(e) => handleCmykChange('m', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="y-value">Y (黄)</Label>
-                      <Input
-                        id="y-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={cmykColor.y}
-                        onChange={(e) => handleCmykChange('y', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="k-value">K (黑)</Label>
-                      <Input
-                        id="k-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={cmykColor.k}
-                        onChange={(e) => handleCmykChange('k', parseInt(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
+                    <ColorValueDisplay
+                      label="HSVA"
+                      value={`hsva(${hue}, ${Math.round(
+                        position.x * 100
+                      )}%, ${Math.round((1 - position.y) * 100)}%, ${
+                        rgbColor.a
+                      })`}
+                      onCopy={() =>
+                        copyToClipboard(
+                          `hsva(${hue}, ${Math.round(
+                            position.x * 100
+                          )}%, ${Math.round((1 - position.y) * 100)}%, ${
+                            rgbColor.a
+                          })`,
+                          "HSVA"
+                        )
+                      }
+                    />
                   </div>
-                  <ColorValueDisplay 
-                    label="CMYK"
-                    value={`cmyk(${cmykColor.c}%, ${cmykColor.m}%, ${cmykColor.y}%, ${cmykColor.k}%)`}
-                    onCopy={() => copyToClipboard(`cmyk(${cmykColor.c}%, ${cmykColor.m}%, ${cmykColor.y}%, ${cmykColor.k}%)`, 'CMYK')}
-                  />
-                </div>
 
-                {/* HSV/HSVA 值显示 */}
-                <div className="space-y-2 pt-4 border-t">
-                  <h3 className="font-medium">HSVA</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="hsv-h-value">H (色相)</Label>
-                      <Input
-                        id="hsv-h-value"
-                        type="number"
-                        min="0"
-                        max="360"
-                        value={hue}
-                        onChange={(e) => {
-                          const newHue = parseInt(e.target.value) || 0;
-                          setHue(newHue);
-                          const rgb = hsvToRgb(newHue, position.x * 100, (1 - position.y) * 100);
-                          setRgbColor({ ...rgb, a: rgbColor.a });
-                          setHexColor(rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a));
-                          setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
-                          setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
-                        }}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="hsv-s-value">S (饱和度)</Label>
-                      <Input
-                        id="hsv-s-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={Math.round(position.x * 100)}
-                        onChange={(e) => {
-                          const s = parseInt(e.target.value) || 0;
-                          setPosition({ ...position, x: s / 100 });
-                          const rgb = hsvToRgb(hue, s, (1 - position.y) * 100);
-                          setRgbColor({ ...rgb, a: rgbColor.a });
-                          setHexColor(rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a));
-                          setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
-                          setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
-                        }}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="hsv-v-value">V (明度)</Label>
-                      <Input
-                        id="hsv-v-value"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={Math.round((1 - position.y) * 100)}
-                        onChange={(e) => {
-                          const v = parseInt(e.target.value) || 0;
-                          setPosition({ ...position, y: 1 - v / 100 });
-                          const rgb = hsvToRgb(hue, position.x * 100, v);
-                          setRgbColor({ ...rgb, a: rgbColor.a });
-                          setHexColor(rgbToHex(rgb.r, rgb.g, rgb.b, rgbColor.a));
-                          setHslColor(rgbToHsl(rgb.r, rgb.g, rgb.b));
-                          setCmykColor(rgbToCmyk(rgb.r, rgb.g, rgb.b));
-                        }}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="hsv-a-value">A (透明度)</Label>
-                      <Input
-                        id="hsv-a-value"
-                        type="number"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={rgbColor.a}
-                        onChange={(e) => handleRgbChange('a', parseFloat(e.target.value) || 0)}
-                        className="font-mono mt-1.5"
-                      />
-                    </div>
-                  </div>
-                  <ColorValueDisplay 
-                    label="HSVA"
-                    value={`hsva(${hue}, ${Math.round(position.x * 100)}%, ${Math.round((1 - position.y) * 100)}%, ${rgbColor.a})`}
-                    onCopy={() => copyToClipboard(`hsva(${hue}, ${Math.round(position.x * 100)}%, ${Math.round((1 - position.y) * 100)}%, ${rgbColor.a})`, 'HSVA')}
-                  />
+                  {/* 右侧列的空间可以用于其他内容 */}
                 </div>
               </div>
             </div>
@@ -1018,48 +1289,7 @@ export default function ColorConverterPage() {
         </div>
       </Card>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">颜色格式说明</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium mb-2">HEX (十六进制)</h4>
-            <p className="text-sm text-muted-foreground">
-              十六进制颜色支持3位(#RGB)、4位(#RGBA)、6位(#RRGGBB)和8位(#RRGGBBAA)格式。
-              例如：#FFF 等同于 #FFFFFF，#F00F 等同于 #FF0000FF。
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-2">RGBA</h4>
-            <p className="text-sm text-muted-foreground">
-              RGBA颜色由四个值组成：红色(R)、绿色(G)和蓝色(B)的值范围是0到255，透明度(A)的值范围是0到1。
-              例如：rgba(255, 0, 0, 1) 代表不透明的红色。
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-2">HSL/HSLA</h4>
-            <p className="text-sm text-muted-foreground">
-              HSL/HSLA表示色调(Hue)、饱和度(Saturation)、亮度(Lightness)和透明度(Alpha)。
-              色调是0到360的度数，饱和度和亮度是0%到100%的百分比，透明度是0到1。
-              例如：hsla(0, 100%, 50%, 1) 代表不透明的红色。
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-2">CMYK</h4>
-            <p className="text-sm text-muted-foreground">
-              CMYK颜色模型用于印刷，由青色(Cyan)、品红色(Magenta)、黄色(Yellow)和黑色(Key)四种油墨的百分比组成。
-              例如：cmyk(0%, 100%, 100%, 0%) 代表红色。
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-2">HSV/HSVA</h4>
-            <p className="text-sm text-muted-foreground">
-              HSV/HSVA表示色调(Hue)、饱和度(Saturation)、明度(Value)和透明度(Alpha)。
-              色调是0到360的度数，饱和度和明度是0%到100%的百分比，透明度是0到1。
-              例如：hsva(0, 100%, 100%, 1) 代表不透明的红色。
-            </p>
-          </div>
-        </div>
-      </Card>
+      {/* 底部的颜色格式说明已移至顶部 */}
     </div>
   );
 }
